@@ -24,6 +24,29 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter games by category and publisher', async ({ page }) => {
+    await page.goto('/');
+    const visibleGameCards = page.locator('[data-testid="game-card"]:visible');
+    const initialCount = await visibleGameCards.count();
+
+    await test.step('Filter by category', async () => {
+      await page.getByTestId('category-filter').selectOption({ label: 'Strategy' });
+      await expect(visibleGameCards).toHaveCount(4);
+      await expect(page.getByTestId('game-category').first()).toHaveText('Strategy');
+    });
+
+    await test.step('Filter the category results by publisher', async () => {
+      await page.getByTestId('publisher-filter').selectOption({ label: 'CodeForge Studios' });
+      await expect(visibleGameCards).toHaveCount(1);
+      await expect(page.getByTestId('game-title')).toHaveText('DevOps Dominion');
+    });
+
+    await test.step('Clear filters', async () => {
+      await page.getByTestId('reset-filters').click();
+      await expect(visibleGameCards).toHaveCount(initialCount);
+    });
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;
